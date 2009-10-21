@@ -5,6 +5,8 @@ use 5.008_001;
 our $VERSION = '0.01';
 
 use Carp ();
+use Cwd;
+use constant NO_OPT => $ENV{PERL_FNS_NO_OPT};
 
 sub new {
     my($class, $path) = @_;
@@ -30,9 +32,9 @@ sub init {
     my $self = shift;
 
     local $@;
-    if ($^O eq 'linux' && eval { require Linux::Inotify2; 1 }) {
+    if ($^O eq 'linux' && !NO_OPT && eval { require Linux::Inotify2; 1 }) {
         $self->{watcher_cb} = \&wait_inotify2;
-    } elsif ($^O eq 'darwin' && eval { require Mac::FSEvents; 1 }) {
+    } elsif ($^O eq 'darwin' && !NO_OPT && eval { require Mac::FSEvents; 1 }) {
         $self->{watcher_cb} = \&wait_fsevents;
     } else {
         $self->{watcher_cb} = \&wait_timer;
@@ -53,7 +55,7 @@ sub wait_inotify2 {
         my $cb = shift;
         $inotify->blocking(1);
         my @events = $inotify->read;
-        $cb->(map { +{ dir => $_->name, path => $_->fullname } } @events);
+        $cb->(map { +{ path => $_->fullname } } @events);
     };
 }
 
@@ -61,14 +63,15 @@ sub wait_fsevents {
     require IO::Select;
     my @path = @_;
 
+    my $fs = _full_scan(@path);
     my $sel = IO::Select->new;
 
     my %events;
     for my $path (@path) {
-        my $fs = Mac::FSEvents->new({ path => $path, latency => 0.2 });
-        my $fh = $fs->watch;
+        my $fsevents = Mac::FSEvents->new({ path => $path, latency => 1 });
+        my $fh = $fsevents->watch;
         $sel->add($fh);
-        $events{fileno $fh} = $fs;
+        $events{fileno $fh} = $fsevents;
     }
 
     return sub {
@@ -77,10 +80,15 @@ sub wait_fsevents {
         my @ready = $sel->can_read;
         my @events;
         for my $fh (@ready) {
-            my $fs = $events{fileno $fh};
-            for my $event ($fs->read_events) {
-                push @events, { dir => $event->path, path => undef };
-            }
+            my $fsevents = $events{fileno $fh};
+            my %uniq;
+            my @path = grep !$uniq{$_}++, map { $_->path } $fsevents->read_events;
+
+            my $new_fs = _full_scan(@path);
+            my $old_fs = +{ map { ($_ => $fs->{$_}) } keys %$new_fs };
+            _compare_fs($old_fs, $new_fs, sub { push @events, { path => $_[0] } });
+            $fs->{$_} = $new_fs->{$_} for keys %$new_fs;
+            last if @events;
         }
 
         $cb->(@events);
@@ -96,11 +104,11 @@ sub wait_timer {
         my $cb = shift;
         my @events;
         while (1) {
+            sleep 2;
             my $new_fs = _full_scan(@path);
-            _compare_fs($fs, $new_fs, sub { push @events, { dir => $_[1], path => $_[0] } });
+            _compare_fs($fs, $new_fs, sub { push @events, { path => $_[0] } });
             $fs = $new_fs;
             last if @events;
-            sleep 2;
         };
         $cb->(@events);
     };
@@ -109,17 +117,22 @@ sub wait_timer {
 sub _compare_fs {
     my($old, $new, $cb) = @_;
 
-    for my $path (keys %$old) {
-        if (!exists $new->{$path}) {
-            $cb->($path, $old->{$path}{dir}); # deleted
-        } elsif (!$new->{$path}{is_dir} &&
-                 ( $old->{$path}{mtime} != $new->{$path}{mtime} || $old->{$path}{size} != $new->{$path}{size})) {
-            $cb->($path, $old->{$path}{dir}); # size/mtime updated
+    for my $dir (keys %$old) {
+        for my $path (keys %{$old->{$dir}}) {
+            if (!exists $new->{$dir}{$path}) {
+                $cb->($path); # deleted
+            } elsif (!$new->{$dir}{$path}{is_dir} &&
+                    ( $old->{$dir}{$path}{mtime} != $new->{$dir}{$path}{mtime} ||
+                      $old->{$dir}{$path}{size}  != $new->{$dir}{$path}{size})) {
+                $cb->($path); # updated
+            }
         }
     }
 
-    for my $path (sort grep { !exists $old->{$_} } keys %$new) {
-        $cb->($path, $new->{$path}{dir}); # created
+    for my $dir (keys %$new) {
+        for my $path (sort grep { !exists $old->{$dir}{$_} } keys %{$new->{$dir}}) {
+            $cb->($path); # new
+        }
     }
 }
 
@@ -130,19 +143,26 @@ sub _full_scan {
     my %map;
     for my $path (@path) {
         File::Find::finddepth({
-            wanted => sub { $map{$File::Find::fullname} = _stat($File::Find::fullname, $path) },
+            wanted => sub {
+                return unless defined $File::Find::fullname;
+                $map{Cwd::realpath($File::Find::dir)}{$File::Find::fullname} = _stat($File::Find::fullname);
+            },
             follow_fast => 1,
             no_chdir => 1,
         }, @path);
+
+        # remove root entry
+        my $fp = Cwd::realpath($path);
+        delete $map{$fp}{$fp};
     }
 
     return \%map;
 }
 
 sub _stat {
-    my($path, $dir) = @_;
+    my $path = shift;
     my @stat = stat $path;
-    return { path => $path, mtime => $stat[9], size => $stat[7], is_dir => -d _, dir => $dir };
+    return { path => $path, mtime => $stat[9], size => $stat[7], is_dir => -d _ };
 }
 
 
@@ -164,8 +184,7 @@ Filesys::Notify::Simple - Simple and dumb file system watcher
   my $watcher = Filesys::Notify::Simple->new([ "." ]);
   $watcher->wait(sub {
       for my $event (@_) {
-          $event->{dir}; # directory you were watching
-          $event->{path} # full path of the file updated. Maybe undef in some environments
+          $event->{path} # full path of the file updated
       }
   });
 
@@ -187,16 +206,11 @@ There is no file name based filter. Do it in your own code.
 
 =item *
 
-The full path is not always available, which is due to the limitation
-of Apple's fsevents API.
-
-=item *
-
 You can not get types of events (created, updated, deleted).
 
 =item *
 
-Curently C<wait> method blocks.
+Currently C<wait> method blocks.
 
 =back
 

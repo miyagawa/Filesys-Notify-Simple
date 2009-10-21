@@ -12,7 +12,7 @@ my $pid = fork;
 if ($pid == 0) {
     Test::SharedFork->child;
     sleep 3;
-    my $test_file = "$FindBin::Bin/rm_create.data";
+    my $test_file = "$FindBin::Bin/x/rm_create.data";
     open my $out, ">", $test_file;
     print $out "foo" . time;
     close $out;
@@ -24,7 +24,7 @@ if ($pid == 0) {
     for (1..2) {
         alarm 10;
         $w->wait(sub { $event = shift }); # create
-        ok $event->{dir};
+        like $event->{path}, qr/rm_create\.data/;
     }
 
     waitpid $pid, 0;
