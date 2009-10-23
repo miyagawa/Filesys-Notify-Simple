@@ -1,5 +1,8 @@
 Revision history for Perl extension Filesys::Notify::Simple
 
+0.03  Fri Oct 23 01:21:13 PDT 2009
+        - Fixed a bug where sub directory is not being monitored with Inotify2 (Thanks to kazeburo)
+
 0.02  Thu Oct 22 13:25:18 PDT 2009
         - Added Test::SharedFork to inc/
 
