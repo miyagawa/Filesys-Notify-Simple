@@ -1,5 +1,8 @@
 Revision history for Perl extension Filesys::Notify::Simple
 
+0.05  Sun Nov 29 14:42:13 JST 2009
+        - Fixed fails with Win32 (charsbar++)
+
 0.04  Fri Oct 23 23:16:13 PDT 2009
         - Upgrade Test::SharedFork in inc/
 

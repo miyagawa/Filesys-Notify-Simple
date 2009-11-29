@@ -18,7 +18,7 @@ if ($pid == 0) {
     close $out;
     sleep 3;
     unlink $test_file;
-} elsif ($pid > 0) {
+} elsif ($pid != 0) {
     Test::SharedFork->parent;
     my $event;
     for (1..2) {

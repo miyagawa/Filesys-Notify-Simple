@@ -2,7 +2,7 @@ package Filesys::Notify::Simple;
 
 use strict;
 use 5.008_001;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Carp ();
 use Cwd;
@@ -145,8 +145,8 @@ sub _full_scan {
     for my $path (@path) {
         File::Find::finddepth({
             wanted => sub {
-                return unless defined $File::Find::fullname;
-                $map{Cwd::realpath($File::Find::dir)}{$File::Find::fullname} = _stat($File::Find::fullname);
+                my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
+                $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
             },
             follow_fast => 1,
             no_chdir => 1,
