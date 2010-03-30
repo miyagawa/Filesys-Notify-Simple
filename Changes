@@ -1,5 +1,9 @@
 Revision history for Perl extension Filesys::Notify::Simple
 
+0.06  Mon Mar 29 17:21:58 PDT 2010
+        - Fixed it so ->wait won't die if one of the given directory doesn't exist, on platforms
+          like Win32.
+
 0.05  Sun Nov 29 14:42:13 JST 2009
         - Fixed fails with Win32 (charsbar++)
 
