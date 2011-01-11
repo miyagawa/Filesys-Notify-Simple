@@ -150,6 +150,7 @@ sub _full_scan {
                 $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
             },
             follow_fast => 1,
+            follow_skip => 2,
             no_chdir => 1,
         }, @path);
 
