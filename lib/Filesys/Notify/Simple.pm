@@ -36,6 +36,8 @@ sub init {
         $self->{watcher_cb} = \&wait_inotify2;
     } elsif ($^O eq 'darwin' && !NO_OPT && eval { require Mac::FSEvents; 1 }) {
         $self->{watcher_cb} = \&wait_fsevents;
+    } elsif ($^O eq 'freebsd' && !NO_OPT && eval { require Filesys::Notify::KQueue; 1 }) {
+        $self->{watcher_cb} = \&wait_kqueue;
     } else {
         $self->{watcher_cb} = \&wait_timer;
     }
@@ -94,6 +96,16 @@ sub wait_fsevents {
 
         $cb->(@events);
     };
+}
+
+sub wait_kqueue {
+    my @path = @_;
+
+    my $kqueue = Filesys::Notify::KQueue->new(
+        path => \@path
+    );
+
+    return sub { $kqueue->wait(shift) };
 }
 
 sub wait_timer {
