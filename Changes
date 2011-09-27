@@ -1,5 +1,8 @@
 Revision history for Perl extension Filesys::Notify::Simple
 
+0.08  Mon Sep 26 18:40:06 PDT 2011
+        - Added KQueue support for FreeBSD
+
 0.07  Thu Jan 13 11:32:09 PST 2011
         - Don't die when there's a symlink poiting to something already processed (clkao)
 
