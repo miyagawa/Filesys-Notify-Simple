@@ -155,6 +155,10 @@ sub _full_scan {
 
     my %map;
     for my $paths (@paths) {
+        unless (ref $paths) {
+            $paths = [$paths];
+        }
+
         for my $path (@{$paths}) {
             my $fp = eval { Cwd::realpath($path) } or next;
             File::Find::finddepth({
