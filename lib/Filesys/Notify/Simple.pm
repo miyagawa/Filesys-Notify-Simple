@@ -150,24 +150,30 @@ sub _compare_fs {
 }
 
 sub _full_scan {
-    my @path = @_;
+    my @paths = @_;
     require File::Find;
 
     my %map;
-    for my $path (@path) {
-        my $fp = eval { Cwd::realpath($path) } or next;
-        File::Find::finddepth({
-            wanted => sub {
-                my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
-                $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
-            },
-            follow_fast => 1,
-            follow_skip => 2,
-            no_chdir => 1,
-        }, @path);
+    for my $paths (@paths) {
+        unless (ref $paths) {
+            $paths = [$paths];
+        }
 
-        # remove root entry
-        delete $map{$fp}{$fp};
+        for my $path (@{$paths}) {
+            my $fp = eval { Cwd::realpath($path) } or next;
+            File::Find::finddepth({
+                wanted => sub {
+                    my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
+                    $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
+                },
+                follow_fast => 1,
+                follow_skip => 2,
+                no_chdir => 1,
+            }, $path);
+
+            # remove root entry
+            delete $map{$fp}{$fp};
+        }
     }
 
     return \%map;
