@@ -154,26 +154,20 @@ sub _full_scan {
     require File::Find;
 
     my %map;
-    for my $paths (@paths) {
-        unless (ref $paths) {
-            $paths = [$paths];
-        }
+    for my $path (@paths) {
+        my $fp = eval { Cwd::realpath($path) } or next;
+        File::Find::finddepth({
+            wanted => sub {
+                my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
+                $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
+            },
+            follow_fast => 1,
+            follow_skip => 2,
+            no_chdir => 1,
+        }, $path);
 
-        for my $path (@{$paths}) {
-            my $fp = eval { Cwd::realpath($path) } or next;
-            File::Find::finddepth({
-                wanted => sub {
-                    my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
-                    $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
-                },
-                follow_fast => 1,
-                follow_skip => 2,
-                no_chdir => 1,
-            }, $path);
-
-            # remove root entry
-            delete $map{$fp}{$fp};
-        }
+        # remove root entry
+        delete $map{$fp}{$fp};
     }
 
     return \%map;
