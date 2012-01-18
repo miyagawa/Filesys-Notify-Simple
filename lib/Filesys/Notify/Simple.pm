@@ -160,18 +160,18 @@ sub _full_scan {
             $map{$fp}{$fp} = _stat($fp);
         }
         else {
-        File::Find::finddepth({
-            wanted => sub {
-                my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
-                $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
-            },
-            follow_fast => 1,
-            follow_skip => 2,
-            no_chdir => 1,
-        }, $path);
+            File::Find::finddepth({
+                wanted => sub {
+                    my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
+                    $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
+                },
+                follow_fast => 1,
+                follow_skip => 2,
+                no_chdir => 1,
+            }, $path);
 
-        # remove root entry
-        delete $map{$fp}{$fp};
+            # remove root entry
+            delete $map{$fp}{$fp};
         }
     }
 
