@@ -156,6 +156,10 @@ sub _full_scan {
     my %map;
     for my $path (@paths) {
         my $fp = eval { Cwd::realpath($path) } or next;
+        if ( -f $fp ) {
+            $map{$fp}{$fp} = _stat($fp);
+        }
+        else {
         File::Find::finddepth({
             wanted => sub {
                 my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
@@ -168,6 +172,7 @@ sub _full_scan {
 
         # remove root entry
         delete $map{$fp}{$fp};
+        }
     }
 
     return \%map;
