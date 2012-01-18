@@ -27,6 +27,8 @@ if ( $pid == 0 ) {
     print $out "bar" . time;
     close $out;
 
+    unlink $other_file;
+
     exit;
 }
 elsif ( $pid != 0 ) {
