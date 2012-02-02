@@ -156,6 +156,18 @@ sub _compare_fs {
     }
 }
 
+sub dir_empty {
+    my ($path) = @;
+
+    return 0 unless -d $path;
+
+    opendir my($dir), $path;
+    my @content = grep {$_ !~ /^..?$/} readdir $dir;
+    closedir($dir);
+
+    return scalar(@content) ? 0 : 1;
+}
+
 sub _full_scan {
     my @paths = @_;
     require File::Find;
@@ -167,6 +179,9 @@ sub _full_scan {
             wanted => sub {
                 my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
                 $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
+                if (_dir_empty($fullname)) {
+                    $map{$fullname}{$fullname} = {};
+                }
             },
             follow_fast => 1,
             follow_skip => 2,
