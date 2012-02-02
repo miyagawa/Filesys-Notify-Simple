@@ -51,13 +51,20 @@ sub wait_inotify2 {
 
     my $fs = _full_scan(@path);
     for my $path (keys %$fs) {
-        $inotify->watch($path, &IN_MODIFY|&IN_CREATE|&IN_DELETE|&IN_DELETE_SELF|&IN_MOVE_SELF);
+        $inotify->watch($path,&IN_MODIFY|&IN_CREATE|&IN_DELETE|&IN_DELETE_SELF|&IN_MOVE_SELF);
     }
 
     return sub {
         my $cb = shift;
         $inotify->blocking(1);
         my @events = $inotify->read;
+
+        for (@events) {
+          if (-d $_->fullname && $_->IN_CREATE) {
+            $inotify->watch($_->fullname,&IN_MODIFY|&IN_CREATE|&IN_DELETE|&IN_DELETE_SELF|&IN_MOVE_SELF);
+          }
+        }
+        
         $cb->(map { +{ path => $_->fullname } } @events);
     };
 }
