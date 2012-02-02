@@ -51,13 +51,20 @@ sub wait_inotify2 {
 
     my $fs = _full_scan(@path);
     for my $path (keys %$fs) {
-        $inotify->watch($path, &IN_MODIFY|&IN_CREATE|&IN_DELETE|&IN_DELETE_SELF|&IN_MOVE_SELF);
+        $inotify->watch($path,&IN_MODIFY|&IN_CREATE|&IN_DELETE|&IN_DELETE_SELF|&IN_MOVE_SELF);
     }
 
     return sub {
         my $cb = shift;
         $inotify->blocking(1);
         my @events = $inotify->read;
+
+        for (@events) {
+          if (-d $_->fullname && $_->IN_CREATE) {
+            $inotify->watch($_->fullname,&IN_MODIFY|&IN_CREATE|&IN_DELETE|&IN_DELETE_SELF|&IN_MOVE_SELF);
+          }
+        }
+        
         $cb->(map { +{ path => $_->fullname } } @events);
     };
 }
@@ -149,6 +156,18 @@ sub _compare_fs {
     }
 }
 
+sub dir_empty {
+    my ($path) = @;
+
+    return 0 unless -d $path;
+
+    opendir my($dir), $path;
+    my @content = grep {$_ !~ /^..?$/} readdir $dir;
+    closedir($dir);
+
+    return scalar(@content) ? 0 : 1;
+}
+
 sub _full_scan {
     my @paths = @_;
     require File::Find;
@@ -160,6 +179,9 @@ sub _full_scan {
             wanted => sub {
                 my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
                 $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
+                if (_dir_empty($fullname)) {
+                    $map{$fullname}{$fullname} = {};
+                }
             },
             follow_fast => 1,
             follow_skip => 2,
