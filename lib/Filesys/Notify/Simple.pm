@@ -248,8 +248,8 @@ Filesys::Notify::Simple - Simple and dumb file system watcher
 
 Filesys::Notify::Simple is a simple but unified interface to get
 notifications of changes to a given filesystem path. It utilizes
-inotify2 on Linux, fsevents on OS X and FindFirstChangeNotification
-on Windows if they're installed, with a
+inotify2 on Linux, fsevents on OS X, kqueue on FreeBSD and
+FindFirstChangeNotification on Windows if they're installed, with a
 fallback to the full directory scan if they're not available.
 
 There are some limitations in this module. If you don't like it, use
@@ -273,7 +273,8 @@ Currently C<wait> method blocks.
 
 In return, this module doesn't depend on any non-core
 modules. Platform specific optimizations with L<Linux::Inotify2>,
-L<Mac::FSEvents> and L<Win32::ChangeNotify> are truely optional.
+L<Mac::FSEvents>, L<Filesys::Notify::KQueue> and L<Win32::ChangeNotify>
+are truely optional.
 
 NOTE: Using L<Win32::ChangeNotify> may put additional limitations.
 
@@ -304,6 +305,7 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<File::ChangeNotify> L<Mac::FSEvents> L<Linux::Inotify2> L<Win32::ChangeNotify>
+L<File::ChangeNotify> L<Mac::FSEvents> L<Linux::Inotify2> L<Filesys::Notify::KQueue>
+L<Win32::ChangeNotify>
 
 =cut
