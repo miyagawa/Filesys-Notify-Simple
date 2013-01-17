@@ -38,6 +38,10 @@ sub init {
         $self->{watcher_cb} = \&wait_fsevents;
     } elsif ($^O eq 'freebsd' && !NO_OPT && eval { require Filesys::Notify::KQueue; 1 }) {
         $self->{watcher_cb} = \&wait_kqueue;
+    } elsif ($^O eq 'MSWin32' && !NO_OPT && eval { require Win32::ChangeNotify; 1 }) {
+        $self->{watcher_cb} = mk_wait_win32(0); # Not cygwin
+    } elsif ($^O eq 'cygwin' && !NO_OPT && eval { require Win32::ChangeNotify; 1 }) {
+        $self->{watcher_cb} = mk_wait_win32(1); # Cygwin
     } else {
         $self->{watcher_cb} = \&wait_timer;
     }
@@ -108,6 +112,43 @@ sub wait_kqueue {
     return sub { $kqueue->wait(shift) };
 }
 
+sub mk_wait_win32 {
+    my ($is_cygwin) = @_;
+
+    return sub {
+        my @path = @_;
+
+        my $fs = _full_scan(@path);
+        my (@notify, @fskey);
+        for my $path (keys %$fs) {
+            my $winpath = $is_cygwin ? Cygwin::posix_to_win_path($path) : $path;
+            # 0x1b means 'DIR_NAME|FILE_NAME|LAST_WRITE|SIZE' = 2|1|0x10|8
+            push @notify, Win32::ChangeNotify->new($winpath, 0, 0x1b);
+            push @fskey, $path;
+        }
+
+        return sub {
+            my $cb = shift;
+
+            my @events;
+            while(1) {
+                my $idx = Win32::ChangeNotify::wait_any(\@notify);
+                Carp::croak("Can't wait notifications, maybe ".scalar(@notify)." directories exceeds limitation.") if ! defined $idx;
+                if($idx > 0) {
+                    --$idx;
+                    my $new_fs = _full_scan($fskey[$idx]);
+                    $notify[$idx]->reset;
+                    my $old_fs = +{ map { ($_ => $fs->{$_}) } keys %$new_fs };
+                    _compare_fs($old_fs, $new_fs, sub { push @events, { path => $_[0] } });
+                    $fs->{$_} = $new_fs->{$_} for keys %$new_fs;
+                    last if @events; # Actually changed
+                }
+            }
+            $cb->(@events);
+        }
+    }
+}
+
 sub wait_timer {
     my @path = @_;
 
@@ -167,7 +208,8 @@ sub _full_scan {
         }, $path);
 
         # remove root entry
-        delete $map{$fp}{$fp};
+        # NOTE: On MSWin32, realpath and rel2abs disagree with path separator.
+        delete $map{$fp}{File::Spec->rel2abs($fp)};
     }
 
     return \%map;
@@ -206,7 +248,8 @@ Filesys::Notify::Simple - Simple and dumb file system watcher
 
 Filesys::Notify::Simple is a simple but unified interface to get
 notifications of changes to a given filesystem path. It utilizes
-inotify2 on Linux and fsevents on OS X if they're installed, with a
+inotify2 on Linux, fsevents on OS X, kqueue on FreeBSD and
+FindFirstChangeNotification on Windows if they're installed, with a
 fallback to the full directory scan if they're not available.
 
 There are some limitations in this module. If you don't like it, use
@@ -229,8 +272,27 @@ Currently C<wait> method blocks.
 =back
 
 In return, this module doesn't depend on any non-core
-modules. Platform specific optimizations with L<Linux::Inotify2> and
-L<Mac::FSEvents> are truely optional.
+modules. Platform specific optimizations with L<Linux::Inotify2>,
+L<Mac::FSEvents>, L<Filesys::Notify::KQueue> and L<Win32::ChangeNotify>
+are truely optional.
+
+NOTE: Using L<Win32::ChangeNotify> may put additional limitations.
+
+=over 4
+
+=item *
+
+L<Win32::ChangeNotify> uses FindFirstChangeNotificationA so that
+Unicode characters can not be handled.
+On cygwin (1.7 or later), Unicode characters should be able to be handled
+when L<Win32::ChangeNotify> is not used.
+
+=item *
+
+If more than 64 directories are included under the specified paths,
+an error occurrs.
+
+=back
 
 =head1 AUTHOR
 
@@ -243,6 +305,7 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<File::ChangeNotify> L<Mac::FSEvents> L<Linux::Inotify2>
+L<File::ChangeNotify> L<Mac::FSEvents> L<Linux::Inotify2> L<Filesys::Notify::KQueue>
+L<Win32::ChangeNotify>
 
 =cut
