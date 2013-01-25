@@ -1,5 +1,8 @@
 Revision history for Perl extension Filesys::Notify::Simple
 
+0.09  Fri Jan 25 08:08:33 PST 2013
+        - Added Win32 support (yak1ex)
+
 0.08  Mon Sep 26 18:40:06 PDT 2011
         - Added KQueue support for FreeBSD
 
