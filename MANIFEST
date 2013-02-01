@@ -17,6 +17,7 @@ MANIFEST			This list of files
 META.yml
 README
 t/00_compile.t
+t/move.t
 t/non_existent_path.t
 t/rm_create.t
 t/x/.placeholder

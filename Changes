@@ -1,5 +1,8 @@
 Revision history for Perl extension Filesys::Notify::Simple
 
+0.10  Fri Feb  1 00:40:56 PST 2013
+        - Support moved files with inotify2 (nihen)
+
 0.09  Fri Jan 25 08:08:33 PST 2013
         - Added Win32 support (yak1ex)
 
