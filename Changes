@@ -1,7 +1,9 @@
 Revision history for Perl extension Filesys::Notify::Simple
 
 {{$NEXT}}
-       - Fix GH#12, Tests should no longer fail under HARNESS_OPTIONS=j10
+
+0.12  2013-06-13 14:45:27 PDT
+       - Fix GH#12, Tests should no longer fail under HARNESS_OPTIONS=j10 (Kent Frederic)
 
 0.11  2013-06-12 17:39:36 PDT
         - use Milla

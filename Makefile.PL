@@ -21,11 +21,11 @@ my %WriteMakefileArgs = (
   "NAME" => "Filesys::Notify::Simple",
   "PREREQ_PM" => {},
   "TEST_REQUIRES" => {
+    "File::Temp" => 0,
     "Test::More" => 0,
-    "Test::SharedFork" => 0,
-    "File::Temp"       => 0,
+    "Test::SharedFork" => 0
   },
-  "VERSION" => "0.11",
+  "VERSION" => "0.12",
   "test" => {
     "TESTS" => "t/*.t"
   }
