@@ -11,11 +11,7 @@ use ExtUtils::MakeMaker 6.30;
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Simple and dumb file system watcher",
   "AUTHOR" => "Tatsuhiko Miyagawa <miyagawa\@bulknews.net>",
-  "BUILD_REQUIRES" => {
-    "ExtUtils::MakeMaker" => "6.59",
-    "Test::More" => 0,
-    "Test::SharedFork" => 0
-  },
+  "BUILD_REQUIRES" => {},
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
   },
@@ -24,7 +20,10 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "Filesys::Notify::Simple",
   "PREREQ_PM" => {},
-  "TEST_REQUIRES" => {},
+  "TEST_REQUIRES" => {
+    "Test::More" => 0,
+    "Test::SharedFork" => 0
+  },
   "VERSION" => "0.10",
   "test" => {
     "TESTS" => "t/*.t"
