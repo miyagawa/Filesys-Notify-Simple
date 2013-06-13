@@ -4,3 +4,5 @@ inc/
 pm_to_blib
 *~
 MYMETA.*
+/Filesys-Notify-Simple-*
+!META.json

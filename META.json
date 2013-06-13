@@ -1,0 +1,72 @@
+{
+   "abstract" : "Simple and dumb file system watcher",
+   "author" : [
+      "Tatsuhiko Miyagawa <miyagawa@bulknews.net>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Milla version v1.0.2, Dist::Zilla version 4.300034, CPAN::Meta::Converter version 2.131560",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Filesys-Notify-Simple",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "xt",
+         "inc",
+         "share",
+         "eg",
+         "examples"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "6.59",
+            "Test::More" : "0",
+            "Test::SharedFork" : "0"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "6.30"
+         }
+      },
+      "develop" : {
+         "requires" : {
+            "Test::Pod" : "1.41"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "perl" : "5.008001"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/miyagawa/Filesys-Notify-Simple/issues"
+      },
+      "homepage" : "https://github.com/miyagawa/Filesys-Notify-Simple",
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/miyagawa/Filesys-Notify-Simple.git",
+         "web" : "https://github.com/miyagawa/Filesys-Notify-Simple"
+      }
+   },
+   "version" : "0.10",
+   "x_contributors" : [
+      "Chia-liang Kao <clkao@clkao.org>",
+      "Christiaan Kras <c.kras@pcc-online.net>",
+      "Kenta Sato <karupa@cpan.org>",
+      "Masahiro Chiba <chiba@everqueue.com>",
+      "Tatsuhiko Miyagawa <miyagawa@gmail.com>",
+      "Yasutaka ATARASHI <yakex@cpan.org>"
+   ]
+}
+

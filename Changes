@@ -1,5 +1,7 @@
 Revision history for Perl extension Filesys::Notify::Simple
 
+{{$NEXT}}
+
 0.10  Fri Feb  1 00:40:56 PST 2013
         - Support moved files with inotify2 (nihen)
 
