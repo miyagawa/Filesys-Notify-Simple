@@ -3,16 +3,20 @@ use Filesys::Notify::Simple;
 use Test::More;
 use Test::SharedFork;
 use FindBin;
+use File::Temp qw( tempdir );
+
+my $dir = tempdir( DIR => "$FindBin::Bin/x" );
+
 
 plan tests => 2;
 
-my $w = Filesys::Notify::Simple->new([ "lib", "t" ]);
+my $w = Filesys::Notify::Simple->new([ "lib", "$dir" ]);
 
 my $pid = fork;
 if ($pid == 0) {
     Test::SharedFork->child;
     sleep 3;
-    my $test_file = "$FindBin::Bin/x/rm_create.data";
+    my $test_file = "$dir/rm_create.data";
     open my $out, ">", $test_file;
     print $out "foo" . time;
     close $out;

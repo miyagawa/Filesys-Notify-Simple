@@ -22,7 +22,8 @@ my %WriteMakefileArgs = (
   "PREREQ_PM" => {},
   "TEST_REQUIRES" => {
     "Test::More" => 0,
-    "Test::SharedFork" => 0
+    "Test::SharedFork" => 0,
+    "File::Temp"       => 0,
   },
   "VERSION" => "0.11",
   "test" => {
