@@ -2,13 +2,18 @@ use strict;
 use Filesys::Notify::Simple;
 use Test::More;
 use Test::SharedFork;
+use File::Temp qw( tempdir );
+
 use FindBin;
 
 plan tests => 2;
 
-my $w = Filesys::Notify::Simple->new([ "lib", "t" ]);
-my $test_file = "$FindBin::Bin/x/move_create.data";
-my $test_file_to = "$FindBin::Bin/x/move_create.data.to";
+my $dir = tempdir( DIR => "$FindBin::Bin/x" );
+my $w = Filesys::Notify::Simple->new([ "lib", "$dir" ]);
+
+my $test_file = "$dir/move_create.data";
+my $test_file_to = "$dir/move_create.data.to";
+
 
 my $pid = fork;
 if ($pid == 0) {
