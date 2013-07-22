@@ -274,7 +274,7 @@ Currently C<wait> method blocks.
 In return, this module doesn't depend on any non-core
 modules. Platform specific optimizations with L<Linux::Inotify2>,
 L<Mac::FSEvents>, L<Filesys::Notify::KQueue> and L<Win32::ChangeNotify>
-are truely optional.
+are truly optional.
 
 NOTE: Using L<Win32::ChangeNotify> may put additional limitations.
 
@@ -282,7 +282,7 @@ NOTE: Using L<Win32::ChangeNotify> may put additional limitations.
 
 =item *
 
-L<Win32::ChangeNotify> uses FindFirstChangeNotificationA so that
+L<Win32::ChangeNotify> uses FindFirstChangeNotification so that
 Unicode characters can not be handled.
 On cygwin (1.7 or later), Unicode characters should be able to be handled
 when L<Win32::ChangeNotify> is not used.
@@ -290,7 +290,7 @@ when L<Win32::ChangeNotify> is not used.
 =item *
 
 If more than 64 directories are included under the specified paths,
-an error occurrs.
+an error occurs.
 
 =back
 
