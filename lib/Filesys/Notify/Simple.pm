@@ -36,7 +36,7 @@ sub init {
         $self->{watcher_cb} = \&wait_inotify2;
     } elsif ($^O eq 'darwin' && !NO_OPT && eval { require Mac::FSEvents; 1 }) {
         $self->{watcher_cb} = \&wait_fsevents;
-    } elsif ($^O eq 'freebsd' && !NO_OPT && eval { require Filesys::Notify::KQueue; 1 }) {
+    } elsif (($^O eq 'freebsd' || $^O eq 'openbsd') && !NO_OPT && eval { require Filesys::Notify::KQueue; 1 }) {
         $self->{watcher_cb} = \&wait_kqueue;
     } elsif ($^O eq 'MSWin32' && !NO_OPT && eval { require Win32::ChangeNotify; 1 }) {
         $self->{watcher_cb} = mk_wait_win32(0); # Not cygwin
