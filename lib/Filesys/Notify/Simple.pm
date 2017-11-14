@@ -119,6 +119,8 @@ sub mk_wait_win32 {
     return sub {
         my @path = @_;
 
+        my %watched = map { ( $_ => 1 ) }
+            grep defined, map { Cwd::abs_path($_) } @path;
         my $fs = _full_scan(@path);
         my (@notify, @fskey);
         for my $path (keys %$fs) {
@@ -133,11 +135,35 @@ sub mk_wait_win32 {
 
             my @events;
             while(1) {
-                my $idx = Win32::ChangeNotify::wait_any(\@notify);
+                my $idx = Win32::ChangeNotify::wait_any(\@notify); 
                 Carp::croak("Can't wait notifications, maybe ".scalar(@notify)." directories exceeds limitation.") if ! defined $idx;
                 if($idx > 0) {
                     --$idx;
+                    # get all file changes in path
                     my $new_fs = _full_scan($fskey[$idx]);
+                    foreach my $root (keys %{$new_fs}) {
+                        # on windows we can only watch folders
+                        # therefore we need to filter unwanted
+                        # events for files we are not looking for
+                        unless (exists $watched{$root}) {
+                            # process all reported file changes in path
+                            foreach my $file (keys %{$new_fs->{$root}}) {
+                                # don't remove if we watch particular file
+                                unless (exists $fs->{$root}->{$file}) {
+                                    # we are not interested in this event
+                                    delete $new_fs->{$root}->{$file};
+                                }
+                            }
+                        }
+                        # but only if we don't watch folder itself
+                        else {
+                            # check if we watch particular root
+                            unless (exists $fs->{$root}) {
+                                # remove paths not watched by us
+                                delete $new_fs->{$root};
+                            }
+                        }
+                    }
                     $notify[$idx]->reset;
                     my $old_fs = +{ map { ($_ => $fs->{$_}) } keys %$new_fs };
                     _compare_fs($old_fs, $new_fs, sub { push @events, { path => $_[0] } });
@@ -210,7 +236,7 @@ sub _full_scan {
 
         # remove root entry
         # NOTE: On MSWin32, realpath and rel2abs disagree with path separator.
-        delete $map{$fp}{File::Spec->rel2abs($fp)};
+        delete $map{$fp}{File::Spec->rel2abs($fp)} if exists $map{$fp};
     }
 
     return \%map;
