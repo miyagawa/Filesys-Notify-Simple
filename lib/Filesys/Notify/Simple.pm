@@ -201,7 +201,8 @@ sub _full_scan {
         File::Find::finddepth({
             wanted => sub {
                 my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
-                $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
+                my $stat = $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
+                $map{$path}{$fullname} = $stat if $stat->{is_dir}; # keep track of directories
             },
             follow_fast => 1,
             follow_skip => 2,
