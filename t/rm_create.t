@@ -6,6 +6,7 @@ use FindBin;
 use File::Temp qw( tempdir );
 
 my $dir = tempdir( DIR => "$FindBin::Bin/x" );
+$Filesys::Notify::Simple::interval = 0.5;
 
 
 plan tests => 2;
@@ -15,12 +16,12 @@ my $w = Filesys::Notify::Simple->new([ "lib", "$dir" ]);
 my $pid = fork;
 if ($pid == 0) {
     Test::SharedFork->child;
-    sleep 3;
+    sleep 1;
     my $test_file = "$dir/rm_create.data";
     open my $out, ">", $test_file;
     print $out "foo" . time;
     close $out;
-    sleep 3;
+    sleep 1;
     unlink $test_file;
 } elsif ($pid != 0) {
     Test::SharedFork->parent;

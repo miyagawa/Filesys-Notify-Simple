@@ -10,6 +10,7 @@ plan tests => 6;
 
 my $dir = tempdir( DIR => "$FindBin::Bin/x" );
 my $w = Filesys::Notify::Simple->new([ "$dir" ]);
+$Filesys::Notify::Simple::interval = 0.5;
 
 mkdir "$dir/root";
 
@@ -17,22 +18,22 @@ mkdir "$dir/root";
 my $pid = fork;
 if ($pid == 0) {
     Test::SharedFork->child;
-    sleep 3;
+    sleep 1;
     note "mkdir subroot\n";
     mkdir "$dir/subroot";
-    sleep 3;
+    sleep 1;
     note "mkdir subroot/deep\n";
     mkdir "$dir/subroot/deep";
-    sleep 3;
+    sleep 1;
     note "mkdir subroot/deep/down\n";
     mkdir "$dir/subroot/deep/down";
-    sleep 3;
+    sleep 1;
     note "rmdir subroot/deep/down\n";
     rmdir "$dir/subroot/deep/down";
-    sleep 3;
+    sleep 1;
     note "rmdir subroot/deep\n";
     rmdir "$dir/subroot/deep";
-    sleep 3;
+    sleep 1;
     note "rmdir subroot\n";
     rmdir "$dir/subroot";
 } elsif ($pid != 0) {
