@@ -3,6 +3,7 @@ package Filesys::Notify::Simple;
 use strict;
 use 5.008_001;
 our $VERSION = '0.12';
+our $interval = 2.0;
 
 use Carp ();
 use Cwd;
@@ -159,7 +160,8 @@ sub wait_timer {
         my $cb = shift;
         my @events;
         while (1) {
-            sleep 2;
+            # sleep 0 is needed to fix sigalrm on windows!?
+            select undef, undef, undef, $interval && sleep 0;
             my $new_fs = _full_scan(@path);
             _compare_fs($fs, $new_fs, sub { push @events, { path => $_[0] } });
             $fs = $new_fs;
@@ -201,7 +203,8 @@ sub _full_scan {
         File::Find::finddepth({
             wanted => sub {
                 my $fullname = $File::Find::fullname || File::Spec->rel2abs($File::Find::name);
-                $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
+                my $stat = $map{Cwd::realpath($File::Find::dir)}{$fullname} = _stat($fullname);
+                $map{$path}{$fullname} = $stat if $stat->{is_dir}; # keep track of directories
             },
             follow_fast => 1,
             follow_skip => 2,

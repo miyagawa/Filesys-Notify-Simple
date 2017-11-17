@@ -5,6 +5,7 @@ $ENV{PERL_FNS_NO_OPT} = 1;
 require Filesys::Notify::Simple;
 
 my $fs = Filesys::Notify::Simple->new(["/xxx/nonexistent"]);
+$Filesys::Notify::Simple::interval = 0.5;
 
 eval {
     $SIG{ALRM} = sub { die "Alarm\n" };
