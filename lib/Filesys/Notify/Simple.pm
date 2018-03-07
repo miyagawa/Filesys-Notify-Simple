@@ -76,7 +76,7 @@ sub wait_fsevents {
 
     my %events;
     for my $path (@path) {
-        my $fsevents = Mac::FSEvents->new({ path => $path, latency => 1 });
+        my $fsevents = Mac::FSEvents->new({ path => $path, latency => 1, file_events => 1 });
         my $fh = $fsevents->watch;
         $sel->add($fh);
         $events{fileno $fh} = $fsevents;
