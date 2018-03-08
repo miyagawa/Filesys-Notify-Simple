@@ -4,33 +4,34 @@
       "Tatsuhiko Miyagawa <miyagawa@bulknews.net>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Milla version v1.0.2, Dist::Zilla version 4.300034, CPAN::Meta::Converter version 2.131560",
+   "generated_by" : "Dist::Milla version v1.0.18, Dist::Zilla version 6.009, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-      "version" : "2"
+      "version" : 2
    },
    "name" : "Filesys-Notify-Simple",
    "no_index" : {
       "directory" : [
-         "t",
-         "xt",
+         "eg",
+         "examples",
          "inc",
          "share",
-         "eg",
-         "examples"
+         "t",
+         "xt"
       ]
    },
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : "6.30"
+            "ExtUtils::MakeMaker" : "0"
          }
       },
       "develop" : {
          "requires" : {
+            "Dist::Milla" : "v1.0.18",
             "Test::Pod" : "1.41"
          }
       },
@@ -59,15 +60,19 @@
          "web" : "https://github.com/miyagawa/Filesys-Notify-Simple"
       }
    },
-   "version" : "0.12",
+   "version" : "0.13",
    "x_contributors" : [
       "Chia-liang Kao <clkao@clkao.org>",
       "Christiaan Kras <c.kras@pcc-online.net>",
-      "Kent Fredric <kentfredric@gmail.com>",
+      "Ilya <i.pavlov@primetech.ru>",
       "Kenta Sato <karupa@cpan.org>",
+      "Kent Fredric <kentfredric@gmail.com>",
       "Masahiro Chiba <chiba@everqueue.com>",
+      "Matthew Somerville <matthew-github@dracos.co.uk>",
+      "mono <mono@mono0x.net>",
       "Tatsuhiko Miyagawa <miyagawa@gmail.com>",
       "Yasutaka ATARASHI <yakex@cpan.org>"
-   ]
+   ],
+   "x_serialization_backend" : "Cpanel::JSON::XS version 3.0233"
 }
 

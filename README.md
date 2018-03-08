@@ -22,23 +22,23 @@ FindFirstChangeNotification on Windows if they're installed, with a
 fallback to the full directory scan if they're not available.
 
 There are some limitations in this module. If you don't like it, use
-[File::ChangeNotify](http://search.cpan.org/perldoc?File::ChangeNotify).
+[File::ChangeNotify](https://metacpan.org/pod/File::ChangeNotify).
 
 - There is no file name based filter. Do it in your own code.
 - You can not get types of events (created, updated, deleted).
 - Currently `wait` method blocks.
 
 In return, this module doesn't depend on any non-core
-modules. Platform specific optimizations with [Linux::Inotify2](http://search.cpan.org/perldoc?Linux::Inotify2),
-[Mac::FSEvents](http://search.cpan.org/perldoc?Mac::FSEvents), [Filesys::Notify::KQueue](http://search.cpan.org/perldoc?Filesys::Notify::KQueue) and [Win32::ChangeNotify](http://search.cpan.org/perldoc?Win32::ChangeNotify)
+modules. Platform specific optimizations with [Linux::Inotify2](https://metacpan.org/pod/Linux::Inotify2),
+[Mac::FSEvents](https://metacpan.org/pod/Mac::FSEvents), [Filesys::Notify::KQueue](https://metacpan.org/pod/Filesys::Notify::KQueue) and [Win32::ChangeNotify](https://metacpan.org/pod/Win32::ChangeNotify)
 are truely optional.
 
-NOTE: Using [Win32::ChangeNotify](http://search.cpan.org/perldoc?Win32::ChangeNotify) may put additional limitations.
+NOTE: Using [Win32::ChangeNotify](https://metacpan.org/pod/Win32::ChangeNotify) may put additional limitations.
 
-- [Win32::ChangeNotify](http://search.cpan.org/perldoc?Win32::ChangeNotify) uses FindFirstChangeNotificationA so that
+- [Win32::ChangeNotify](https://metacpan.org/pod/Win32::ChangeNotify) uses FindFirstChangeNotificationA so that
 Unicode characters can not be handled.
 On cygwin (1.7 or later), Unicode characters should be able to be handled
-when [Win32::ChangeNotify](http://search.cpan.org/perldoc?Win32::ChangeNotify) is not used.
+when [Win32::ChangeNotify](https://metacpan.org/pod/Win32::ChangeNotify) is not used.
 - If more than 64 directories are included under the specified paths,
 an error occurrs.
 
@@ -53,5 +53,5 @@ it under the same terms as Perl itself.
 
 # SEE ALSO
 
-[File::ChangeNotify](http://search.cpan.org/perldoc?File::ChangeNotify) [Mac::FSEvents](http://search.cpan.org/perldoc?Mac::FSEvents) [Linux::Inotify2](http://search.cpan.org/perldoc?Linux::Inotify2) [Filesys::Notify::KQueue](http://search.cpan.org/perldoc?Filesys::Notify::KQueue)
-[Win32::ChangeNotify](http://search.cpan.org/perldoc?Win32::ChangeNotify)
+[File::ChangeNotify](https://metacpan.org/pod/File::ChangeNotify) [Mac::FSEvents](https://metacpan.org/pod/Mac::FSEvents) [Linux::Inotify2](https://metacpan.org/pod/Linux::Inotify2) [Filesys::Notify::KQueue](https://metacpan.org/pod/Filesys::Notify::KQueue)
+[Win32::ChangeNotify](https://metacpan.org/pod/Win32::ChangeNotify)

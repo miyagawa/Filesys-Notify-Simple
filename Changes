@@ -2,6 +2,10 @@ Revision history for Perl extension Filesys::Notify::Simple
 
 {{$NEXT}}
 
+0.13  2018-03-07 23:02:15 PST
+        - Add OpenBSD support #22
+        - Fix for a new Mac::FSEvents API #25
+
 0.12  2013-06-13 14:45:27 PDT
        - Fix GH#12, Tests should no longer fail under HARNESS_OPTIONS=j10 (Kent Frederic)
 
