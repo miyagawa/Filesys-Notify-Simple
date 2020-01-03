@@ -2,6 +2,10 @@ Revision history for Perl extension Filesys::Notify::Simple
 
 {{$NEXT}}
 
+0.14  2020-01-03 11:36:49 PST
+        - Inlude path for linux error message
+        - Demote the error above to a warning
+
 0.13  2018-03-07 23:02:15 PST
         - Add OpenBSD support #22
         - Fix for a new Mac::FSEvents API #25
