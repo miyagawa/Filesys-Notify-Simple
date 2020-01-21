@@ -119,12 +119,74 @@ sub mk_wait_win32 {
     return sub {
         my @path = @_;
 
-        my $fs = _full_scan(@path);
+        require File::Basename;
+        @path = map { Cwd::abs_path($_) } @path;
+        my (%observer, @dirs, @files, @roots);
+
+        # split up watcher paths
+        foreach my $path (@path) {
+            if (-f $path) { push @files, $path; }
+            elsif (-d $path) { push @dirs, $path; }
+        }
+
+        # get rid of inner paths
+        # no need to observer twice
+        foreach my $path (@dirs) {
+            my $hasroot = undef;
+            foreach my $root (@roots) {
+                # check if path starts with root (is subpath)
+                if (substr($path, 0, length($root)) eq $root) {
+                    $hasroot = $root;
+                    last;
+                }
+            }
+            push @roots, $path unless $hasroot;
+        }
+
+        # observe directories recursively
+        foreach my $path (@dirs) {
+            if (exists $observer{$path}) {
+                $observer{$path}->{isdir} = 1;
+            } else {
+                $observer{$path} = {
+                    files => [],
+                    isdir => 1
+                };
+            }
+        }
+
+        # observe files explicitly, but only if
+        # base directory is no watched recursively
+        foreach my $file (@files) {
+            my $path = File::Basename::dirname($file);
+            if (exists $observer{$path}) {
+                push @{$observer{$path}->{files}}, $path
+            } else {
+                $observer{$path} = {
+                    files => [$path],
+                    isdir => 0
+                };
+            }
+        }
+
+        # optimize scan targets for observer
+        foreach my $path (keys %observer) {
+            $observer{$path}->{scan} = $observer{$path}->{isdir}
+                ? [ $path ] : \ @{$observer{$path}->{files}};
+        }
+
+        # either scan the whole directory or only the necessary files
+        my @scan = map { @{$observer{$_}->{scan}} } keys %observer;
+
+        # get current filesystem state
+        my $fs = _full_scan(@scan);
+
         my (@notify, @fskey);
-        for my $path (keys %$fs) {
+
+        for my $path (keys %observer) {
             my $winpath = $is_cygwin ? Cygwin::posix_to_win_path($path) : $path;
             # 0x1b means 'DIR_NAME|FILE_NAME|LAST_WRITE|SIZE' = 2|1|0x10|8
-            push @notify, Win32::ChangeNotify->new($winpath, 0, 0x1b);
+            push @notify, Win32::ChangeNotify->new($winpath, $observer{$path}->{isdir}, 0x1b);
             push @fskey, $path;
         }
 
@@ -133,11 +195,29 @@ sub mk_wait_win32 {
 
             my @events;
             while(1) {
-                my $idx = Win32::ChangeNotify::wait_any(\@notify);
-                Carp::croak("Can't wait notifications, maybe ".scalar(@notify)." directories exceeds limitation.") if ! defined $idx;
+                my $idx = Win32::ChangeNotify::wait_any(\@notify); 
+                Carp::croak("Can't wait notifications, maybe " . scalar(@notify) . " directories exceeds limitation.") if ! defined $idx;
                 if($idx > 0) {
                     --$idx;
-                    my $new_fs = _full_scan($fskey[$idx]);
+                    # get all file changes for observed path
+                    my $observer = $observer{$fskey[$idx]};
+                    my $new_fs = _full_scan(@{$observer->{scan}});
+                    # on windows we can only watch folders
+                    # therefore we need to filter unwanted
+                    # events for files we are not looking for
+                    # but only if we don't watch folder itself
+                    unless ($observer->{isdir}) {
+                        foreach my $root (keys %{$new_fs}) {
+                            # process all reported file changes in path
+                            foreach my $file (keys %{$new_fs->{$root}}) {
+                                # don't remove if we watch particular file
+                                unless (exists $fs->{$root}->{$file}) {
+                                    # we are not interested in this event
+                                    delete $new_fs->{$root}->{$file};
+                                }
+                            }
+                        }
+                    }
                     $notify[$idx]->reset;
                     my $old_fs = +{ map { ($_ => $fs->{$_}) } keys %$new_fs };
                     _compare_fs($old_fs, $new_fs, sub { push @events, { path => $_[0] } });
@@ -210,7 +290,7 @@ sub _full_scan {
 
         # remove root entry
         # NOTE: On MSWin32, realpath and rel2abs disagree with path separator.
-        delete $map{$fp}{File::Spec->rel2abs($fp)};
+        delete $map{$fp}{File::Spec->rel2abs($fp)} if exists $map{$fp};
     }
 
     return \%map;

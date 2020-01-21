@@ -1,6 +1,8 @@
 META.yml
 Makefile
 inc/
+blib/
+t/x/
 pm_to_blib
 *~
 MYMETA.*
