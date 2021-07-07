@@ -1,10 +1,17 @@
 use strict;
+use Config;
 use Filesys::Notify::Simple;
 use Test::More;
 use Test::SharedFork;
 use File::Temp qw( tempdir );
 
 use FindBin;
+
+plan skip_all => "fork not supported on this platform"
+  unless $Config::Config{d_fork} || $Config::Config{d_pseudofork} ||
+    (($^O eq 'MSWin32' || $^O eq 'NetWare') and
+     $Config::Config{useithreads} and
+     $Config::Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/);
 
 plan tests => 2;
 
