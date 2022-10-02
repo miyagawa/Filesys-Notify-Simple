@@ -38,6 +38,10 @@ sub init {
         $self->{watcher_cb} = \&wait_fsevents;
     } elsif (($^O eq 'freebsd' || $^O eq 'openbsd') && !NO_OPT && eval { require Filesys::Notify::KQueue; 1 }) {
         $self->{watcher_cb} = \&wait_kqueue;
+    } elsif ($^O eq 'MSWin32' && !NO_OPT && eval { require Filesys::Notify::Win32::ReadDirectoryChanges; 1 }) {
+        $self->{watcher_cb} = mk_wait_win32_readdirectorychanges(0); # Not cygwin
+    } elsif ($^O eq 'cygwin' && !NO_OPT && eval { require Filesys::Notify::Win32::ReadDirectoryChanges; 1 }) {
+        $self->{watcher_cb} = mk_wait_win32_readdirectorychanges(1); # Cygwin
     } elsif ($^O eq 'MSWin32' && !NO_OPT && eval { require Win32::ChangeNotify; 1 }) {
         $self->{watcher_cb} = mk_wait_win32(0); # Not cygwin
     } elsif ($^O eq 'cygwin' && !NO_OPT && eval { require Win32::ChangeNotify; 1 }) {
@@ -150,6 +154,24 @@ sub mk_wait_win32 {
     }
 }
 
+sub mk_wait_win32_readdirectorychanges {
+    my ($is_cygwin) = @_;
+
+    return sub {
+        my @path = @_;
+        my $watcher = Filesys::Notify::Win32::ReadDirectoryChanges->new();
+        for my $dir (@path) {
+            $watcher->watch_directory( path => $dir, subtree => 1 );
+        };
+
+        return sub {
+            my $cb = shift;
+            my @events = $watcher->queue->dequeue;
+            $cb->(@events);
+        }
+    }
+}
+
 sub wait_timer {
     my @path = @_;
 
@@ -250,7 +272,8 @@ Filesys::Notify::Simple - Simple and dumb file system watcher
 Filesys::Notify::Simple is a simple but unified interface to get
 notifications of changes to a given filesystem path. It utilizes
 inotify2 on Linux, fsevents on OS X, kqueue on FreeBSD and
-FindFirstChangeNotification on Windows if they're installed, with a
+ReadDirectoryChangesW or FindFirstChangeNotification on Windows
+if they're installed, with a
 fallback to the full directory scan if they're not available.
 
 There are some limitations in this module. If you don't like it, use
@@ -274,7 +297,8 @@ Currently C<wait> method blocks.
 
 In return, this module doesn't depend on any non-core
 modules. Platform specific optimizations with L<Linux::Inotify2>,
-L<Mac::FSEvents>, L<Filesys::Notify::KQueue> and L<Win32::ChangeNotify>
+L<Mac::FSEvents>, L<Filesys::Notify::KQueue>,
+L<Filesys::Notify::Win32::ReadDirectoryChanges> and L<Win32::ChangeNotify>
 are truely optional.
 
 NOTE: Using L<Win32::ChangeNotify> may put additional limitations.
@@ -307,6 +331,6 @@ it under the same terms as Perl itself.
 =head1 SEE ALSO
 
 L<File::ChangeNotify> L<Mac::FSEvents> L<Linux::Inotify2> L<Filesys::Notify::KQueue>
-L<Win32::ChangeNotify>
+L<Filesys::Notify::ReadDirectoryChanges>, L<Win32::ChangeNotify>
 
 =cut
