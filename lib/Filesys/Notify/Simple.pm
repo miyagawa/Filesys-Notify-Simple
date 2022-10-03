@@ -295,6 +295,28 @@ L<Mac::FSEvents>, L<Filesys::Notify::KQueue>,
 L<Filesys::Notify::Win32::ReadDirectoryChanges> and L<Win32::ChangeNotify>
 are truely optional.
 
+NOTE: Using L<Filesys::Notify::Win32::ReadDirectoryChanges> has the following
+limitations:
+
+=over 4
+
+=item *
+
+The module only works with a Perl with threads and launches a thread for each
+watched directory.
+
+=item *
+
+The module handles Unicode characters in filenames by converting them to
+UTF-16le. If the characters are not representable in UTF-16le, the results are
+undefined.
+
+=item *
+
+L<Filesys::Notify::Win32::ReadDirectoryChanges> does not yet support cygwin.
+
+=back
+
 NOTE: Using L<Win32::ChangeNotify> may put additional limitations.
 
 =over 4
