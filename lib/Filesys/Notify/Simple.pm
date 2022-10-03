@@ -39,9 +39,7 @@ sub init {
     } elsif (($^O eq 'freebsd' || $^O eq 'openbsd') && !NO_OPT && eval { require Filesys::Notify::KQueue; 1 }) {
         $self->{watcher_cb} = \&wait_kqueue;
     } elsif ($^O eq 'MSWin32' && !NO_OPT && eval { require Filesys::Notify::Win32::ReadDirectoryChanges; 1 }) {
-        $self->{watcher_cb} = mk_wait_win32_readdirectorychanges(0); # Not cygwin
-    } elsif ($^O eq 'cygwin' && !NO_OPT && eval { require Filesys::Notify::Win32::ReadDirectoryChanges; 1 }) {
-        $self->{watcher_cb} = mk_wait_win32_readdirectorychanges(1); # Cygwin
+        $self->{watcher_cb} = \&wait_win32_readdirectorychanges; # Not cygwin
     } elsif ($^O eq 'MSWin32' && !NO_OPT && eval { require Win32::ChangeNotify; 1 }) {
         $self->{watcher_cb} = mk_wait_win32(0); # Not cygwin
     } elsif ($^O eq 'cygwin' && !NO_OPT && eval { require Win32::ChangeNotify; 1 }) {
@@ -154,21 +152,17 @@ sub mk_wait_win32 {
     }
 }
 
-sub mk_wait_win32_readdirectorychanges {
-    my ($is_cygwin) = @_;
+sub wait_win32_readdirectorychanges {
+    my @path = @_;
+    my $watcher = Filesys::Notify::Win32::ReadDirectoryChanges->new();
+    for my $dir (@path) {
+        $watcher->watch_directory( path => $dir, subtree => 1 );
+    };
 
     return sub {
-        my @path = @_;
-        my $watcher = Filesys::Notify::Win32::ReadDirectoryChanges->new();
-        for my $dir (@path) {
-            $watcher->watch_directory( path => $dir, subtree => 1 );
-        };
-
-        return sub {
-            my $cb = shift;
-            my @events = $watcher->queue->dequeue;
-            $cb->(@events);
-        }
+        my $cb = shift;
+        my @events = $watcher->queue->dequeue;
+        $cb->(@events);
     }
 }
 
@@ -300,6 +294,28 @@ modules. Platform specific optimizations with L<Linux::Inotify2>,
 L<Mac::FSEvents>, L<Filesys::Notify::KQueue>,
 L<Filesys::Notify::Win32::ReadDirectoryChanges> and L<Win32::ChangeNotify>
 are truely optional.
+
+NOTE: Using L<Filesys::Notify::Win32::ReadDirectoryChanges> has the following
+limitations:
+
+=over 4
+
+=item *
+
+The module only works with a Perl with threads and launches a thread for each
+watched directory.
+
+=item *
+
+The module handles Unicode characters in filenames by converting them to
+UTF-16le. If the characters are not representable in UTF-16le, the results are
+undefined.
+
+=item *
+
+L<Filesys::Notify::Win32::ReadDirectoryChanges> does not yet support cygwin.
+
+=back
 
 NOTE: Using L<Win32::ChangeNotify> may put additional limitations.
 
