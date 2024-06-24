@@ -15,6 +15,8 @@ sub new {
         Carp::croak('Usage: Filesys::Notify::Simple->new([ $path1, $path2 ])');
     }
 
+    @$path = grep { -e $_ } @$path;
+
     my $self = bless { paths => $path }, $class;
     $self->init;
 
